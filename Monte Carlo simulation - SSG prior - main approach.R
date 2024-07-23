@@ -338,46 +338,6 @@ plot(seq(1,simulationsize,1),alpha_behavior,type="l",col="red", lwd = 2,
 lines(seq(1,simulationsize,1), estimativa_mediana, lty=2, lwd = 2)
 lines(seq(1,simulationsize,1), estimativa_media, lty=3,col = "blue",lwd = 3)
 
-#Alpha
-minHPD <- vector("double", simulationsize)
-maxHPD <- vector("double", simulationsize)
-for (ii in 1:simulationsize) {
-  hpd_alpha <- ComputeHDI(estimated_alpha_median[,ii], credible.region = 0.95)
-  minHPD[ii] <- hpd_alpha[1]
-  maxHPD[ii] <- hpd_alpha[2]
-}
-
-alpha_post <- data.frame(minHPD, maxHPD, alpha_behavior,estimativa_media,
-                         serie)
-
-ggplot(alpha_post, aes(x = serie))+
-  geom_text(aes(x = 0.5, y = 0.5,
-                label = ""),
-            stat = "unique") +
-  geom_text(aes(x = 0.5, y = 1,
-                label = ""),
-            stat = "unique") +
-  geom_line(aes(y = alpha_behavior), color = "red", size = 1)+
-  labs(title="",x="t", y = TeX("$\\hat{\\alpha}_t$")) +
-  geom_line(aes(y=estimativa_media),color = "black",
-            linetype = "longdash", size = 1)+
-  theme_classic()
-
-ggplot(alpha_post, aes(x = serie))+
-  geom_text(aes(x = 0.5, y = 0.5,
-                label = ""),
-            stat = "unique") +
-  geom_text(aes(x = 0.5, y = 1,
-                label = ""),
-            stat = "unique") +
-  geom_ribbon(aes(ymin = minHPD, ymax = maxHPD), alpha = .5,
-              fill = "grey", color = "transparent")+
-  geom_line(aes(y = alpha_behavior), color = "red", size = 1)+
-  labs(title="",x="t", y = TeX("$\\hat{\\alpha}_t$")) +
-  geom_line(aes(y=estimativa_media),color = "black",
-            linetype = "longdash", size = 1)+
-  theme_classic()
-
 #Component parameters
 #mu1
 HDI_mu1 <-  ComputeHDI(estimated_mu_median[,1], credible.region = 0.95)
