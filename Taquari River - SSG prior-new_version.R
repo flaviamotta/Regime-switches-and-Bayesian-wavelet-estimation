@@ -18,7 +18,7 @@ library('lubridate')
 # ============================= Preparing the data =============================
 # ==============================================================================
 
-dados <- read.csv("C:\\Users\\lacas\\OneDrive\\FLÁVIA\\Mestrado\\Treinando R studio\\Base de dados\\encantado-quote_128.csv",
+dados <- read.csv("C:\\Users\\lacas\\OneDrive\\FLÃVIA\\Mestrado\\Base de dados\\encantado-quote_128.csv",
                   sep=';', dec='.')
 dados$Flood <- as.factor(dados$Flood)
 y <- dados$Average_monthly
@@ -223,8 +223,6 @@ for(ii in 2:BB){
     print(paste0(ii, " iterations of ", BB, "."))
 }
 
-
-
 # =========================== Burn-in and lag ==================================
 #Creating the matrices with the burn-in and lag
 
@@ -243,66 +241,3 @@ estimated_alpha_median <- apply(matrix_alpha,2,median)
 estimated_mu_mean <- apply(matrix_mu,2,mean)
 estimated_phi_mean <- apply(matrix_phi,2,mean)
 estimated_alpha_mean <- apply(matrix_alpha,2,mean)
-
-
-# ================= Comparing the estimates with the parameters ================
-
-
-minHPD <- vector("double", data_size)
-maxHPD <- vector("double", data_size)
-for (ii in 1:data_size) {
-  hpd_alpha <- ComputeHDI(matrix_alpha[,ii], credible.region = 0.95)
-  minHPD[ii] <- hpd_alpha[1]
-  maxHPD[ii] <- hpd_alpha[2]
-}
-
-dummy_flood <- dados$Flood
-date_mon_year <- dmy(dados$Date)
-alpha_post <- data.frame(minHPD, date_mon_year, maxHPD, estimated_alpha_median,
-                         serie, y, dummy_flood)
-
-#Alpha
-ggplot(alpha_post, aes(x = date_mon_year))+
-  labs(title="",x="", y = TeX("$\\hat{\\alpha}_t$")) +
-  geom_line(aes(y=estimated_alpha_median),color = "black",
-            size = 1)+
-  scale_x_date(date_labels = "%b-%Y",
-               breaks = date_mon_year[dummy_flood==1])+
-  theme_classic()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-ggplot(alpha_post, aes(x = date_mon_year))+
-  labs(title="",x="", y = TeX("$\\hat{\\alpha}_t$")) +
-  geom_ribbon(aes(ymin = minHPD, ymax = maxHPD), alpha = .75,
-              fill = "grey", color = "transparent")+ 
-  geom_line(aes(y=estimated_alpha_median),color = "black",
-            size = 1)+
-  scale_x_date(date_labels = "%b-%Y",
-               breaks = date_mon_year[dummy_flood==1])+
-  theme_classic()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-
-#Component parameters
-#mu1
-HDI_mu1 <-  ComputeHDI(matrix_mu[,1], credible.region = 0.95)
-HDI_tau1 <- ComputeHDI(matrix_phi[,1], credible.region = 0.95)
-HDI_mu2 <-  ComputeHDI(matrix_mu[,2], credible.region = 0.95)
-HDI_tau2 <- ComputeHDI(matrix_phi[,2], credible.region = 0.95)
-
-#Component parameters
-#mu1
-round(estimated_mu_median[1], digits=2)
-round(HDI_mu1, digits=2)
-
-#tau1
-round(estimated_phi_median[1], digits=2)
-round(HDI_tau1, digits=2)
-
-#mu2
-round(estimated_mu_median[2], digits=2)
-round(HDI_mu2, digits=2)
-
-#tau2
-round(estimated_phi_median[2], digits=2)
-round(HDI_tau2, digits=2)
