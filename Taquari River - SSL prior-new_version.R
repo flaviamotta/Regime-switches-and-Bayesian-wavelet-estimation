@@ -20,7 +20,7 @@ set.seed(65480)
 # ============================= Preparing the data =============================
 # ==============================================================================
 
-dados <- read.csv("C:\\Users\\lacas\\OneDrive\\FLÁVIA\\Mestrado\\Treinando R studio\\Base de dados\\encantado-quote_128.csv",
+dados <- read.csv("C:\\Users\\lacas\\OneDrive\\FLÃVIA\\Mestrado\\Base de dados\\encantado-quote_128.csv",
                   sep=';', dec='.')
 dados$Flood <- as.factor(dados$Flood)
 y <- dados$Average_monthly
@@ -121,27 +121,23 @@ for(ii in 2:BB){
   sy0 <- sum(y0)
   
 # ====================== Generating mean.lower =================================
-  # mu[ii,1] <- truemean1
   var_mu_lower <- 1/(n0*phi[ii-1,1]+ 1/prior_variance1)
   mean_mu_lower <- var_mu_lower *(sy0*phi[ii-1,1] +
                                     prior_mean1/prior_variance1)
   mu[ii,1] <- rnorm(n = 1, mean = mean_mu_lower, sd = sqrt(var_mu_lower))
   
 # ====================== Generating prec.lower =================================  
-  # phi[ii,1] <- trueprecision1
   alpha_gamma_lower <- prior_alpha_gamma + n0/2
   beta_gamma_lower <- prior_beta_gamma + sum((y0 - mu[ii,1])^2)/2
   phi[ii,1] <- rgamma(1, shape = alpha_gamma_lower, rate = beta_gamma_lower)
   
 # ====================== Generating mean.higher ================================  
-  # mu[ii,2] <- truemean2
   var_mu_higher <- 1/(n1*phi[ii-1,2]+ 1/prior_variance2)
   mean_mu_higher <- var_mu_higher *(sy1*phi[ii-1,2] +
                                       prior_mean2/prior_variance2)
   mu[ii,2] <- rnorm(n = 1, mean = mean_mu_higher, sd = sqrt(var_mu_higher))
   
 # ====================== Generating prec.higher ================================ 
-  # phi[ii,2] <- trueprecision2
   alpha_gamma_higher <- prior_alpha_gamma + n1/2
   beta_gamma_higher <- prior_beta_gamma + sum((y1 - mu[ii,2])^2)/2
   phi[ii,2] <- rgamma(1, shape = alpha_gamma_higher, rate = beta_gamma_higher)
@@ -158,7 +154,6 @@ for(ii in 2:BB){
   
   
 # ====================== Generating pred_label =================================
-  # pred_label <- z
   prob0 <- (1-alpha[ii-1,])*dnorm(x = y, mean = mu[ii,1],
                                   sd = 1/sqrt(phi[ii,1]))
   prob1 <- alpha[ii-1,]*dnorm(x = y, mean = mu[ii,2],
@@ -205,7 +200,6 @@ for(ii in 2:BB){
                                        x = lat_var_coeff)
   
   mix_var <- rbinom(n = data_size, size = 1, prob = pi_post_mix_wavelet)
-
 # ============================ Generating theta ================================  
   prob_tn_nu <- exp(-a_laplace*lat_var_coeff)*pnorm((lat_var_coeff-a_laplace))
   
@@ -232,19 +226,15 @@ for(ii in 2:BB){
   coef_wavelet[ii,1] <- accessC.wd(wav_lat_var, level = 0)
   
 # =========================== Generating inv_coeff =============================
-  # inv_coeff[ii,] <- qnorm(alpha_behavior, mean = 0, sd = 1)
   inv_coeff[ii,] <- inverse_coeff(coef_wavelet[ii,], vm = number_vm, 
                                   fc = family_choice)
   
 # ========================== Generating alpha ==================================
-  #alpha[ii,] <- alpha_behavior
   alpha[ii,] <- pnorm(inv_coeff[ii,], 0, 1)
   
   if(!ii%%n.verbose & verbose)
     print(paste0(ii, " iterations of ", BB, "."))
 }
-
-
 
 # =========================== Burn-in and lag ==================================
 #Creating the matrices with the burn-in and lag
@@ -264,46 +254,3 @@ estimated_alpha_median <- apply(matrix_alpha,2,median)
 estimated_mu_mean <- apply(matrix_mu,2,mean)
 estimated_phi_mean <- apply(matrix_phi,2,mean)
 estimated_alpha_mean <- apply(matrix_alpha,2,mean)
-
-
-# ================= Comparing the estimates with the parameters ================
-
-
-minHPD <- vector("double", data_size)
-maxHPD <- vector("double", data_size)
-for (ii in 1:data_size) {
-  hpd_alpha <- ComputeHDI(matrix_alpha[,ii], credible.region = 0.95)
-  minHPD[ii] <- hpd_alpha[1]
-  maxHPD[ii] <- hpd_alpha[2]
-}
-
-dummy_flood <- dados$Flood
-date_mon_year <- dmy(dados$Date)
-alpha_post <- data.frame(minHPD, date_mon_year, maxHPD, estimated_alpha_median,
-                         serie, y, dummy_flood)
-
-#Alpha
-#alpha_taquari_geran_mix_lap_1_sem
-ggplot(alpha_post, aes(x = date_mon_year))+
-  labs(title="",x="", y = TeX("$\\hat{\\alpha}_t$")) +
-  geom_line(aes(y=estimated_alpha_median),color = "black",
-            size = 1)+
-  scale_x_date(date_labels = "%b-%Y",
-               breaks = date_mon_year[dummy_flood==1])+
-  theme_classic()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-
-#alpha_taquari_geran_mix_lap_2_grey_sem
-ggplot(alpha_post, aes(x = date_mon_year))+
-  labs(title="",x="", y = TeX("$\\hat{\\alpha}_t$")) +
-  geom_ribbon(aes(ymin = minHPD, ymax = maxHPD), alpha = .75,
-              fill = "grey", color = "transparent")+ 
-  geom_line(aes(y=estimated_alpha_median),color = "black",
-            size = 1)+
-  scale_x_date(date_labels = "%b-%Y",
-               breaks = date_mon_year[dummy_flood==1])+
-  theme_classic()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-
